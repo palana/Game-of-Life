@@ -65,6 +65,7 @@ struct timer
     bool expired() { return chrono::steady_clock::now() >= end; }
     void reset(string header)
     {
+        return;
         auto now = chrono::steady_clock::now();
         cout << header << ' ' << chrono::duration_cast<chrono::microseconds>(now - start).count() << " us\n";
         start = now;
@@ -150,7 +151,6 @@ int main()
                 cycle.resize(cycle_length);
                 cycles_initialized = 0;
                 reset_timer = timer(sqrt(cycle_length));
-                return 0;
             }
         }
         t.reset("foo");
@@ -215,7 +215,7 @@ void update_world(world_t cur, world_t prev, state_chart_t chart)
             const auto w = [&](int w) -> unsigned {
                 return (Width+x+w)%Width;
             };
-            *((uint16_t*)&cur[y][x]) = chart[prev[h(-1)][w(-1)]/255][prev[h(-1)][x]/255][prev[h(-1)][w(1)]/255][prev[h(-1)][w(2)]/255][prev[y][w(-1)]/255][prev[y][x]/255][prev[y][w(1)]/255][prev[y][w(2)]/255][prev[h(1)][w(-1)]/255][prev[h(1)][x]/255][prev[h(1)][w(1)]/255][prev[h(1)][w(2)]/255];
+            *((uint16_t*)&cur[y][x]) = chart[prev[h(-1)][w(-1)]&1][prev[h(-1)][x]&1][prev[h(-1)][w(1)]&1][prev[h(-1)][w(2)]&1][prev[y][w(-1)]&1][prev[y][x]&1][prev[y][w(1)]&1][prev[y][w(2)]&1][prev[h(1)][w(-1)]&1][prev[h(1)][x]&1][prev[h(1)][w(1)]&1][prev[h(1)][w(2)]&1];
         }
 }
 
