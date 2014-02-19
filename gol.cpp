@@ -12,10 +12,10 @@
 
 using namespace std;
 
-const unsigned Width = 1280,
-               Height = 960;
+unsigned const Width = 640,
+               Height = 480;
 
-const string Title = "Game of Life";
+string const Title = "Game of Life";
 
 typedef unsigned char uchar;
 typedef uint16_t state_chart_t[2][2][2][2][2][2][2][2][2][2][2][2];
@@ -24,37 +24,35 @@ typedef uchar world_t[Height][Width];
 void init_scene(GLuint&);
 void destroy_scene(GLuint&);
 template <typename T>
-void draw_scene(GLuint&, const T&);
+void draw_scene(GLuint&, T const&);
 template <typename T>
-void update_texture(GLuint&, const T&);
+void update_texture(GLuint&, T const&);
 
 void create_state_chart(state_chart_t);
 
 void create_world(world_t);
-void update_world(world_t /*cur*/, world_t/*prev*/, state_chart_t);
+void update_world(world_t const /*cur*/, world_t/*prev*/, state_chart_t const);
 
-namespace detail {
-    size_t hash_fnv(const world_t& world)
-    {
-        size_t res = numeric_limits<size_t>::digits == 64 ? 14695981039346656037UL : 2166136261UL;
-        auto const prime = numeric_limits<size_t>::digits == 64 ? 1099511628211UL : 16777619UL;
-        static_assert(Width%8 == 0, "must be multiple of 8");
-        for(auto y = 0; y < Height; y++)
-            for(auto x = 0; x < Width; x += 8)
-            {
-                uint8_t octet = (world[y][x] & 0x80) |
-                    (world[y][x+1] & 0x40) |
-                    (world[y][x+2] & 0x20) |
-                    (world[y][x+3] & 0x10) |
-                    (world[y][x+4] & 0x08) |
-                    (world[y][x+5] & 0x04) |
-                    (world[y][x+6] & 0x02) |
-                    (world[y][x+7] & 0x01);
-                res ^= octet;
-                res *= prime;
-            }
-        return res;
-    }
+size_t hash_fnv(world_t const &world)
+{
+    size_t res = numeric_limits<size_t>::digits == 64 ? 14695981039346656037UL : 2166136261UL;
+    auto const prime = numeric_limits<size_t>::digits == 64 ? 1099511628211UL : 16777619UL;
+    static_assert(Width%8 == 0, "must be multiple of 8");
+    for(auto y = 0; y < Height; y++)
+        for(auto x = 0; x < Width; x += 8)
+        {
+            uint8_t octet = (world[y][x] & 0x80) |
+                (world[y][x+1] & 0x40) |
+                (world[y][x+2] & 0x20) |
+                (world[y][x+3] & 0x10) |
+                (world[y][x+4] & 0x08) |
+                (world[y][x+5] & 0x04) |
+                (world[y][x+6] & 0x02) |
+                (world[y][x+7] & 0x01);
+            res ^= octet;
+            res *= prime;
+        }
+    return res;
 }
 
 struct timer
@@ -136,7 +134,7 @@ int main()
                 update_world(world[updates%2], world[(updates-1)%2], state_chart);
         }
         t.reset("update world");
-        size_t hash = ::detail::hash_fnv(world[updates%2]);
+        size_t hash = hash_fnv(world[updates%2]);
         t.reset("hash");
         auto pos = history.find(hash);
         if(pos == history.end())
@@ -204,7 +202,7 @@ void create_world(world_t world)
             world[y][x] = ((rand()%10) == 0)*255;
 }
 
-void update_world(world_t cur, world_t prev, state_chart_t chart)
+void update_world(world_t const cur, world_t prev, state_chart_t const chart)
 {
     for(auto y = 0; y < Height; y++)
         for(auto x = 0; x < Width; x+=2)
@@ -220,12 +218,12 @@ void update_world(world_t cur, world_t prev, state_chart_t chart)
 }
 
 template <typename T>
-void update_texture(GLuint& tex, const T& world)
+void update_texture(GLuint &tex, T const &world)
 {
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, Width, Height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, world);
 }
 
-void init_texture(GLuint& tex)
+void init_texture(GLuint &tex)
 {
     /*glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -233,7 +231,7 @@ void init_texture(GLuint& tex)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);*/
 }
 
-void init_scene(GLuint& tex)
+void init_scene(GLuint &tex)
 {
     //glEnable(GL_TEXTURE_2D);
     glClearColor(1, 1, 1, 1);
@@ -246,13 +244,13 @@ void init_scene(GLuint& tex)
     init_texture(tex);
 }
 
-void destroy_scene(GLuint& tex)
+void destroy_scene(GLuint &tex)
 {
     //glDeleteTextures(1, &tex);
 }
 
 template <typename T>
-void draw_scene(GLuint& tex, const T& world)
+void draw_scene(GLuint &tex, T const &world)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
