@@ -253,8 +253,8 @@ template <typename T>
 void draw_scene(GLuint &tex, T const &world)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
     glDrawPixels(Width, Height, GL_LUMINANCE, GL_UNSIGNED_BYTE, world);
     /*glBindTexture(GL_TEXTURE_2D, tex);
     glColor4f(1, 1, 1, 1);
