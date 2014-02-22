@@ -24,7 +24,7 @@ typedef uchar world_t[Height][Width];
 void init_scene(GLuint&);
 void destroy_scene(GLuint&);
 template <typename T>
-void draw_scene(GLuint&, T const&);
+void draw_scene(GLuint, T const&, bool const);
 template <typename T>
 void update_texture(GLuint&, T const&);
 
@@ -148,7 +148,7 @@ int main()
                      << history.size() << " generations\n";
                 cycle.resize(cycle_length);
                 cycles_initialized = 0;
-                reset_timer = timer(sqrt(cycle_length));
+                reset_timer = timer(max(5., sqrt(cycle_length)));
             }
         }
         t.reset("foo");
@@ -157,7 +157,7 @@ int main()
         else
             update_texture(texture, world[updates%2]);
         t.reset("texture");
-        draw_scene(texture, world);
+        draw_scene(texture, world, cyclic);
         t.reset("draw");
         glfwSwapBuffers();
         t.reset("swap");
@@ -250,12 +250,12 @@ void destroy_scene(GLuint &tex)
 }
 
 template <typename T>
-void draw_scene(GLuint &tex, T const &world)
+void draw_scene(GLuint tex, T const &world, bool const cyclic)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //glMatrixMode(GL_MODELVIEW);
     //glLoadIdentity();
-    glDrawPixels(Width, Height, GL_LUMINANCE, GL_UNSIGNED_BYTE, world);
+    glDrawPixels(Width, Height, cyclic ? GL_GREEN : GL_LUMINANCE, GL_UNSIGNED_BYTE, world);
     /*glBindTexture(GL_TEXTURE_2D, tex);
     glColor4f(1, 1, 1, 1);
 
