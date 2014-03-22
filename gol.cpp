@@ -9,6 +9,7 @@
 #include <limits>
 #include <cmath>
 #include <cstdint>
+#include <thread>
 
 using namespace std;
 
@@ -204,17 +205,33 @@ void create_world(world_t world)
 
 void update_world(world_t const cur, world_t prev, state_chart_t const chart)
 {
-    for(auto y = 0; y < Height; y++)
-        for(auto x = 0; x < Width; x+=2)
-        {
-            const auto h = [&](int h) -> unsigned {
-                return (Height+y+h)%Height;
-            };
-            const auto w = [&](int w) -> unsigned {
-                return (Width+x+w)%Width;
-            };
-            *((uint16_t*)&cur[y][x]) = chart[prev[h(-1)][w(-1)]&1][prev[h(-1)][x]&1][prev[h(-1)][w(1)]&1][prev[h(-1)][w(2)]&1][prev[y][w(-1)]&1][prev[y][x]&1][prev[y][w(1)]&1][prev[y][w(2)]&1][prev[h(1)][w(-1)]&1][prev[h(1)][x]&1][prev[h(1)][w(1)]&1][prev[h(1)][w(2)]&1];
-        }
+    vector<thread> threads;
+    int const n_threads = 2;
+    int const per_thread = Height/n_threads;
+    int h_lower = 0, h_upper = per_thread;
+    for(int i = 0; i < n_threads; i++)
+    {
+        if (Height - h_upper < per_thread)
+            h_upper = Height;
+        threads.emplace_back([&cur, &prev, &chart, h_lower, h_upper] {
+            for(auto y = h_lower; y < h_upper; y++)
+                for(auto x = 0; x < Width; x+=2)
+                {
+                    const auto h = [&](int h) -> unsigned {
+                        return (Height+y+h)%Height;
+                    };
+                    const auto w = [&](int w) -> unsigned {
+                        return (Width+x+w)%Width;
+                    };
+                    *((uint16_t*)&cur[y][x]) = chart[prev[h(-1)][w(-1)]&1][prev[h(-1)][x]&1][prev[h(-1)][w(1)]&1][prev[h(-1)][w(2)]&1][prev[y][w(-1)]&1][prev[y][x]&1][prev[y][w(1)]&1][prev[y][w(2)]&1][prev[h(1)][w(-1)]&1][prev[h(1)][x]&1][prev[h(1)][w(1)]&1][prev[h(1)][w(2)]&1];
+                }
+        });
+        h_lower = h_upper;
+        h_upper += per_thread;
+    }
+
+    for (auto &thread : threads)
+        thread.join();
 }
 
 template <typename T>
